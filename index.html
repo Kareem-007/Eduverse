@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Eduverse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11/styles/atom-one-dark.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11/lib/highlight.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@5/lib/index.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #05080f; --surface: #0b1220; --surface2: #0d1828;
+    --border: #162035; --border2: #1e2f48;
+    --glow: #00c8ff; --glow2: #6c4fff; --green: #00ffaa;
+    --text: #d8eaf8; --muted: #3a5570; --danger: #ff3366;
+    --code-bg: #090e18;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Syne', sans-serif;
+    height: 100vh; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  body::before {
+    content:''; position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 50% 60% at 25% 50%, rgba(0,200,255,0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 50% at 75% 50%, rgba(108,79,255,0.04) 0%, transparent 70%);
+    pointer-events:none; z-index:0;
+  }
+  body::after {
+    content:''; position:fixed; inset:0;
+    background: repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.05) 3px,rgba(0,0,0,0.05) 4px);
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── Header ── */
+  .header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 24px; border-bottom:1px solid var(--border);
+    background:rgba(5,8,15,0.9); backdrop-filter:blur(12px);
+    flex-shrink:0; z-index:10;
+  }
+  .brand {
+    font-size:0.7rem; font-family:'IBM Plex Mono',monospace;
+    letter-spacing:0.3em; color:var(--muted); text-transform:uppercase;
+    display:flex; align-items:center; gap:10px;
+  }
+  .brand-gem {
+    width:10px; height:10px;
+    background:linear-gradient(135deg,var(--glow),var(--glow2));
+    clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);
+    animation: gemPulse 3s ease-in-out infinite;
+  }
+  @keyframes gemPulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.5) drop-shadow(0 0 4px var(--glow))} }
+  .header-right { display:flex; align-items:center; gap:16px; }
+  .status-bar {
+    display:flex; align-items:center; gap:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:0.68rem;
+    letter-spacing:0.1em; color:var(--muted);
+  }
+  .status-dot {
+    width:7px; height:7px; border-radius:50%;
+    background:var(--muted); transition:all 0.3s; flex-shrink:0;
+  }
+  .status-dot.connecting { background:#ffaa00; box-shadow:0 0 8px #ffaa00; animation:blink 1s ease-in-out infinite; }
+  .status-dot.connected  { background:var(--green); box-shadow:0 0 8px var(--green); }
+  .status-dot.speaking   { background:var(--glow); box-shadow:0 0 10px var(--glow); animation:blink 0.6s ease-in-out infinite; }
+  .status-dot.error      { background:var(--danger); box-shadow:0 0 8px var(--danger); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .start-btn {
+    display:flex; align-items:center; gap:8px; padding:8px 20px;
+    background:linear-gradient(135deg,var(--glow),var(--glow2));
+    border:none; border-radius:50px; color:white;
+    font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700;
+    letter-spacing:0.06em; cursor:pointer;
+    transition:transform 0.15s,box-shadow 0.15s;
+    box-shadow:0 4px 16px rgba(0,200,255,0.2);
+  }
+  .start-btn:hover { transform:scale(1.03); }
+  .start-btn.hidden { display:none; }
+  .mic-btn {
+    display:flex; align-items:center; gap:8px; padding:8px 20px;
+    background: rgba(11,18,32,0.9);
+    border:1px solid var(--border2); border-radius:50px; color: var(--muted);
+    font-family:'Syne',sans-serif; font-size:0.78rem; font-weight:700;
+    letter-spacing:0.06em; cursor:pointer; transition:all 0.2s;
+  }
+  .mic-btn:hover { border-color: var(--glow); color: var(--text); }
+  .mic-btn.active {
+    background:linear-gradient(135deg,rgba(0,200,255,0.15),rgba(108,79,255,0.15));
+    border-color: var(--glow); color: var(--glow);
+    box-shadow: 0 0 16px rgba(0,200,255,0.2);
+    animation: micPulse 2s ease-in-out infinite;
+  }
+  .mic-btn.disabled { opacity:0.4; cursor:not-allowed; pointer-events:none; }
+  @keyframes micPulse { 0%,100%{box-shadow:0 0 10px rgba(0,200,255,0.2)} 50%{box-shadow:0 0 22px rgba(0,200,255,0.45)} }
+  .mic-dot { width:8px; height:8px; border-radius:50%; background:var(--muted); transition:all 0.2s; flex-shrink:0; }
+  .mic-btn.active .mic-dot { background:var(--glow); box-shadow:0 0 6px var(--glow); animation:micDotBlink 1s ease-in-out infinite; }
+  @keyframes micDotBlink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── Main split ── */
+  .main { display:flex; flex:1; overflow:hidden; position:relative; z-index:1; }
+
+  /* ── LEFT: Avatar ── */
+  .left-panel {
+    width:400px; flex-shrink:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:24px; border-right:1px solid var(--border); gap:16px;
+  }
+  .avatar-card {
+    position:relative; width:100%; flex:1; max-height:480px;
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:20px; overflow:hidden;
+    box-shadow:0 0 0 1px rgba(0,200,255,0.04),0 24px 60px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .avatar-card::before,.avatar-card::after {
+    content:''; position:absolute; width:18px; height:18px;
+    border-color:rgba(0,200,255,0.25); border-style:solid; z-index:10; pointer-events:none;
+  }
+  .avatar-card::before { top:10px; left:10px; border-width:1px 0 0 1px; border-radius:3px 0 0 0; }
+  .avatar-card::after  { bottom:10px; right:10px; border-width:0 1px 1px 0; border-radius:0 0 3px 0; }
+  .glow-ring {
+    position:absolute; inset:-2px; border-radius:22px;
+    border:2px solid transparent;
+    background:linear-gradient(135deg,var(--glow),var(--glow2)) border-box;
+    -webkit-mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);
+    -webkit-mask-composite:destination-out; mask-composite:exclude;
+    opacity:0; transition:opacity 0.4s; pointer-events:none; z-index:10;
+  }
+  .avatar-card.speaking .glow-ring { opacity:1; animation:ringPulse 1.5s ease-in-out infinite; }
+  @keyframes ringPulse { 0%,100%{filter:brightness(1)} 50%{filter:brightness(1.8) blur(0.5px)} }
+  #avatarContainer { width:100%; height:100%; }
+  .loading-overlay {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    background:radial-gradient(ellipse 80% 70% at 50% 35%,#0d1e3a 0%,#060c18 100%);
+    z-index:5; transition:opacity 0.6s;
+  }
+  .loading-overlay.hidden { opacity:0; pointer-events:none; }
+  .spinner {
+    width:32px; height:32px;
+    border:2px solid var(--border); border-top-color:var(--glow);
+    border-radius:50%; animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading-text { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; letter-spacing:0.15em; color:var(--muted); }
+  .name-badge { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; letter-spacing:0.2em; color:var(--muted); text-transform:uppercase; }
+
+  /* ── RIGHT: Content panel ── */
+  .right-panel { flex:1; display:flex; flex-direction:column; overflow:hidden; background:var(--surface2); }
+  .panel-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 20px; border-bottom:1px solid var(--border); flex-shrink:0;
+  }
+  .panel-title {
+    font-family:'IBM Plex Mono',monospace; font-size:0.65rem;
+    letter-spacing:0.2em; color:var(--muted); text-transform:uppercase;
+    display:flex; align-items:center; gap:8px;
+  }
+  .panel-title-dot { width:6px; height:6px; border-radius:50%; background:var(--glow2); opacity:0.6; }
+  .clear-btn {
+    font-family:'IBM Plex Mono',monospace; font-size:0.6rem;
+    letter-spacing:0.1em; color:var(--muted); text-transform:uppercase;
+    background:none; border:1px solid var(--border); border-radius:4px;
+    padding:4px 10px; cursor:pointer; transition:all 0.2s;
+  }
+  .clear-btn:hover { color:var(--text); border-color:var(--border2); }
+  .content-area {
+    flex:1; overflow-y:auto; padding:24px;
+    display:flex; flex-direction:column; gap:16px;
+  }
+  .content-area::-webkit-scrollbar { width:4px; }
+  .content-area::-webkit-scrollbar-track { background:transparent; }
+  .content-area::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+  .empty-state {
+    flex:1; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:12px; color:var(--muted);
+  }
+  .empty-state svg { opacity:0.2; }
+  .empty-state p { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; opacity:0.5; }
+
+  /* ── Transcript bubble ── */
+  .transcript-bubble {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:14px 18px;
+    animation:fadeIn 0.3s ease;
+    font-size:0.88rem; line-height:1.7; color:var(--text);
+  }
+  .transcript-bubble.streaming { border-color:rgba(0,200,255,0.2); }
+  .transcript-label {
+    font-family:'IBM Plex Mono',monospace; font-size:0.6rem;
+    letter-spacing:0.15em; color:var(--glow); text-transform:uppercase;
+    margin-bottom:8px; opacity:0.7;
+  }
+  .cursor {
+    display:inline-block; width:2px; height:1em;
+    background:var(--glow); margin-left:2px;
+    vertical-align:text-bottom;
+    animation:cursorBlink 0.8s ease-in-out infinite;
+  }
+  @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ── Content block (from tool call) ── */
+  .content-block {
+    background:var(--surface); border:1px solid var(--border2);
+    border-left:3px solid var(--glow2);
+    border-radius:12px; padding:16px 20px;
+    animation:fadeIn 0.3s ease;
+  }
+  .content-block-title {
+    font-family:'IBM Plex Mono',monospace; font-size:0.62rem;
+    letter-spacing:0.15em; color:var(--glow2); text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .content-block-body { font-size:0.88rem; line-height:1.7; color:var(--text); }
+  .content-block-body p { margin-bottom:0.7em; }
+  .content-block-body p:last-child { margin-bottom:0; }
+  .content-block-body h1,.content-block-body h2,.content-block-body h3 { font-weight:700; margin:0.8em 0 0.3em; }
+  .content-block-body h3 { font-size:0.9rem; color:var(--glow); }
+  .content-block-body ul,.content-block-body ol { padding-left:1.4em; margin-bottom:0.7em; }
+  .content-block-body li { margin-bottom:0.25em; }
+  .content-block-body strong { color:white; }
+  .content-block-body code {
+    font-family:'IBM Plex Mono',monospace; font-size:0.8em;
+    background:var(--code-bg); color:#7dd3fc;
+    padding:2px 6px; border-radius:4px; border:1px solid var(--border);
+  }
+  .content-block-body pre {
+    background:var(--code-bg) !important;
+    border:1px solid var(--border); border-radius:8px;
+    margin:0.8em 0; overflow:hidden;
+  }
+  .code-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:7px 14px; background:rgba(255,255,255,0.03);
+    border-bottom:1px solid var(--border);
+  }
+  .code-lang { font-family:'IBM Plex Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; color:var(--muted); text-transform:uppercase; }
+  .copy-btn {
+    font-family:'IBM Plex Mono',monospace; font-size:0.6rem;
+    letter-spacing:0.1em; color:var(--muted); text-transform:uppercase;
+    background:none; border:none; cursor:pointer; transition:color 0.2s;
+  }
+  .copy-btn:hover { color:var(--glow); }
+  .content-block-body pre code {
+    background:transparent !important; border:none; padding:14px !important;
+    display:block; font-size:0.82rem;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="brand">
+    <div class="brand-gem"></div>
+    eduverse · ai tutor
+    <div class="brand-gem"></div>
+  </div>
+  <div class="header-right">
+    <div class="status-bar">
+      <div class="status-dot connecting" id="statusDot"></div>
+      <span id="statusText">INITIALIZING...</span>
+    </div>
+    <button class="start-btn" id="startBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+      Start Session
+    </button>
+    <button class="mic-btn disabled" id="micBtn">
+      <div class="mic-dot"></div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" y1="19" x2="12" y2="23"/>
+        <line x1="8" y1="23" x2="16" y2="23"/>
+      </svg>
+      Mic Off
+    </button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- LEFT: Avatar -->
+  <div class="left-panel">
+    <div class="avatar-card" id="avatarCard">
+      <div class="glow-ring"></div>
+      <div id="avatarContainer"></div>
+      <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">LOADING AVATAR...</div>
+      </div>
+    </div>
+    <div class="name-badge">Eduverse · AI Tutor</div>
+  </div>
+
+  <!-- RIGHT: Content panel -->
+  <div class="right-panel">
+    <div class="panel-header">
+      <div class="panel-title">
+        <div class="panel-title-dot"></div>
+        Session Notes
+      </div>
+      <button class="clear-btn" id="clearBtn">Clear</button>
+    </div>
+    <div class="content-area" id="contentArea">
+      <div class="empty-state" id="emptyState">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <p>Eduverse's responses will appear here</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+    "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.7/modules/talkinghead.mjs"
+  }
+}
+</script>
+
+<script type="module">
+import { TalkingHead } from "talkinghead";
+
+// ─── DOM ──────────────────────────────────────────────────────────────────────
+const getHljs = () => window.hljs;
+const avatarCard      = document.getElementById('avatarCard');
+const avatarContainer = document.getElementById('avatarContainer');
+const loadingOverlay  = document.getElementById('loadingOverlay');
+const loadingText     = document.getElementById('loadingText');
+const statusDot       = document.getElementById('statusDot');
+const statusText      = document.getElementById('statusText');
+const startBtn        = document.getElementById('startBtn');
+const contentArea     = document.getElementById('contentArea');
+const emptyState      = document.getElementById('emptyState');
+const clearBtn        = document.getElementById('clearBtn');
+const micBtn          = document.getElementById('micBtn');
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let head           = null;
+let ws             = null;
+let isStreaming    = false;
+
+// ─── Mic state ────────────────────────────────────────────────────────────────
+let micStream      = null;
+let micSourceNode  = null;
+let micWorkletNode = null;
+let micActive      = false;
+let micCtx         = null;
+let speakAudioActive = false; // true while TalkingHead.speakAudio owns the visemes
+let pendingShowContent = [];  // buffer show_content blocks until turn_complete
+let currentBubble  = null;
+let currentText    = '';
+let cachedMeshes   = [];
+let smoothedAmp    = 0;
+let pcmChunks      = [];
+let pendingText    = '';
+let activeSourceNodes = [];  // track scheduled nodes for interruption cancellation
+
+// ─── Audio ────────────────────────────────────────────────────────────────────
+let audioCtx               = null;
+let analyser               = null;
+let playbackScheduledUntil = 0;
+
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new AudioContext({ sampleRate: 24000 });
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  analyser.smoothingTimeConstant = 0.6;
+  analyser.connect(audioCtx.destination);
+  playbackScheduledUntil = audioCtx.currentTime;
+}
+
+function playPCMChunk(int16Array) {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const float32 = new Float32Array(int16Array.length);
+  for (let i = 0; i < int16Array.length; i++) float32[i] = int16Array[i] / 32768.0;
+  const buffer = audioCtx.createBuffer(1, float32.length, 24000);
+  buffer.copyToChannel(float32, 0);
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.connect(analyser);
+  const startAt = Math.max(audioCtx.currentTime, playbackScheduledUntil);
+  source.start(startAt);
+  playbackScheduledUntil = startAt + buffer.duration;
+  // Track for interruption
+  activeSourceNodes.push(source);
+  source.onended = () => { activeSourceNodes = activeSourceNodes.filter(n => n !== source); };
+}
+
+// Called when backend signals Gemini was interrupted by the user's voice
+function interruptPlayback() {
+  console.log(`[Interrupt] Stopping ${activeSourceNodes.length} scheduled nodes`);
+  activeSourceNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+  activeSourceNodes = [];
+  playbackScheduledUntil = audioCtx ? audioCtx.currentTime : 0;
+  // Reset all streaming state
+  isStreaming = false;
+  speakAudioActive = false;
+  pcmChunks   = [];
+  pendingText = '';
+  avatarCard.classList.remove('speaking');
+  setStatus('connected', micActive ? 'CONNECTED · MIC ACTIVE' : 'CONNECTED · CLICK MIC TO TALK');
+  // Discard the partial transcript bubble — don't render half a sentence
+  if (currentBubble) {
+    currentBubble.remove();
+    currentBubble = null;
+    currentBodyEl = null;
+    currentText   = '';
+  }
+}
+
+// ─── Multi-viseme lipsync ─────────────────────────────────────────────────────
+// Drives all 15 Oculus viseme blend shapes from frequency bands.
+// Winner-takes-most ensures only the dominant mouth shape fires strongly
+// — no more simultaneous activations that stretch the mouth open.
+const VISEME_NAMES = [
+  'viseme_sil','viseme_PP','viseme_FF','viseme_TH','viseme_DD',
+  'viseme_kk','viseme_CH','viseme_SS','viseme_nn','viseme_RR',
+  'viseme_aa','viseme_E','viseme_I','viseme_O','viseme_U',
+];
+const visemeSmoothed = new Float32Array(15);
+
+function animateMouth() {
+  requestAnimationFrame(animateMouth);
+  if (!analyser || !head) return;
+  // When speakAudio is driving visemes, don't fight it — fade out and yield
+  if (speakAudioActive) {
+    for (let i = 0; i < 15; i++) { visemeSmoothed[i] *= 0.85; _setV(i, visemeSmoothed[i]); }
+    return;
+  }
+
+  const bins = new Uint8Array(analyser.frequencyBinCount); // 128 bins (fftSize=256)
+  analyser.getByteFrequencyData(bins);
+
+  // Average a slice of frequency bins, returns 0..1
+  const avg = (lo, hi) => {
+    let s = 0;
+    for (let i = lo; i <= hi; i++) s += bins[i];
+    return s / ((hi - lo + 1) * 255);
+  };
+
+  const totalEnergy = avg(0, bins.length - 1);
+
+  // Fade out when silent or not speaking
+  if (!isStreaming || totalEnergy < 0.012) {
+    for (let i = 0; i < 15; i++) {
+      visemeSmoothed[i] *= 0.8;
+      _setViseme(i, visemeSmoothed[i]);
+    }
+    return;
+  }
+
+  // fftSize=256 at 24kHz → 128 bins → each bin ≈ 187.5 Hz
+  // MAX_BLEND=0.38 keeps mouth in natural range (not wide-open screaming)
+  const MAX = 0.38;
+  const raw = [
+    0,                      // [0]  sil — handled separately
+    avg(0,  1)  * 0.55,    // [1]  PP  bilabials        ~0–375Hz
+    avg(23, 37) * 0.60,    // [2]  FF  labiodentals     ~4.3–6.9kHz
+    avg(40, 48) * 0.55,    // [3]  TH  dentals          ~7.5–9kHz
+    avg(13, 20) * 0.55,    // [4]  DD  alveolars        ~2.4–3.75kHz
+    avg(9,  12) * 0.50,    // [5]  kk  velars           ~1.7–2.25kHz
+    avg(15, 25) * 0.50,    // [6]  CH  palatals         ~2.8–4.7kHz
+    avg(27, 47) * 0.60,    // [7]  SS  sibilants        ~5–8.8kHz
+    avg(1,  2)  * 0.50,    // [8]  nn  nasals           ~188–375Hz
+    avg(10, 11) * 0.48,    // [9]  RR  rhotics          ~1.9–2.1kHz
+    avg(3,  5)  * 0.65,    // [10] aa  open vowel       ~560–940Hz  ← most visible
+    avg(6,  8)  * 0.55,    // [11] E   mid-front        ~1.1–1.5kHz
+    avg(12, 14) * 0.50,    // [12] I   high-front       ~2.25–2.6kHz
+    avg(2,  3)  * 0.55,    // [13] O   back vowel       ~375–560Hz
+    avg(1,  2)  * 0.50,    // [14] U   high-back        ~188–375Hz
+  ];
+
+  // Find dominant viseme (skip sil)
+  let maxVal = 0, maxIdx = 10; // default: aa
+  for (let i = 1; i < 15; i++) {
+    if (raw[i] > maxVal) { maxVal = raw[i]; maxIdx = i; }
+  }
+
+  // Winner-takes-most: dominant gets full weight, others strongly suppressed
+  const targets = new Float32Array(15);
+  targets[0] = Math.max(0, 0.15 - totalEnergy * 2);
+  for (let i = 1; i < 15; i++) {
+    if (i === maxIdx) {
+      targets[i] = Math.min(raw[i], MAX);
+    } else {
+      const suppress = maxVal > raw[i] + 0.04 ? 0.15 : 0.4;
+      targets[i] = Math.min(raw[i] * suppress, MAX * 0.25);
+    }
+  }
+
+  // Smooth: fast attack (0.25), slow release (0.10)
+  for (let i = 0; i < 15; i++) {
+    const alpha = targets[i] > visemeSmoothed[i] ? 0.25 : 0.10;
+    visemeSmoothed[i] += (targets[i] - visemeSmoothed[i]) * alpha;
+    _setViseme(i, visemeSmoothed[i]);
+  }
+}
+
+function _setViseme(index, value) {
+  try {
+    const node = head?.mtAvatar?.[VISEME_NAMES[index]];
+    if (node) { node.realtime = value; node.needsUpdate = true; }
+  } catch(e) {}
+}
+
+// ─── Status ───────────────────────────────────────────────────────────────────
+function setStatus(cls, text) {
+  statusDot.className = 'status-dot ' + cls;
+  statusText.textContent = text;
+}
+
+// ─── Markdown renderer with code headers ─────────────────────────────────────
+marked.setOptions({ breaks: true, gfm: true });
+const renderer = new marked.Renderer();
+renderer.code = function(token) {
+  const code = (typeof token === 'object' && token.text) ? token.text : token;
+  const lang = (typeof token === 'object' && token.lang) ? token.lang : '';
+  const language = lang || 'text';
+  const h = getHljs();
+  const highlighted = h
+    ? (h.getLanguage(language) ? h.highlight(code, { language }).value : h.highlightAuto(code).value)
+    : code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `<pre><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div><code class="hljs language-${language}">${highlighted}</code></pre>`;
+};
+marked.use({ renderer });
+if (window.markedKatex) marked.use(window.markedKatex({ throwOnError: false }));
+
+// ─── Panel helpers ────────────────────────────────────────────────────────────
+function hideEmptyState() { emptyState.style.display = 'none'; }
+
+let currentBodyEl = null;
+
+function startTranscriptBubble() {
+  hideEmptyState();
+  currentText = '';
+  const bubble = document.createElement('div');
+  bubble.className = 'transcript-bubble streaming';
+  const label = document.createElement('div');
+  label.className = 'transcript-label';
+  label.textContent = 'Eduverse';
+  const body = document.createElement('div');
+  body.className = 'content-block-body';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  body.appendChild(cursor);
+  bubble.appendChild(label);
+  bubble.appendChild(body);
+  contentArea.appendChild(bubble);
+  currentBubble = bubble;
+  currentBodyEl = body;
+  contentArea.scrollTop = contentArea.scrollHeight;
+}
+
+function appendTranscript(text) {
+  if (!currentBubble) startTranscriptBubble();
+  currentText += text;
+  if (currentBodyEl) {
+    currentBodyEl.innerHTML = marked.parse(currentText) + '<span class="cursor"></span>';
+    currentBodyEl.querySelectorAll('pre code:not([data-highlighted])').forEach(el => {
+      window.hljs?.highlightElement(el);
+      el.dataset.highlighted = 'yes';
+    });
+  }
+  contentArea.scrollTop = contentArea.scrollHeight;
+}
+
+function finalizeTranscript() {
+  if (!currentBubble) return;
+  if (currentBodyEl) {
+    currentBodyEl.innerHTML = marked.parse(currentText);
+    currentBodyEl.querySelectorAll('pre code').forEach(el => window.hljs?.highlightElement(el));
+  }
+  currentBubble.classList.remove('streaming');
+  currentBubble = null;
+  currentBodyEl = null;
+  currentText = '';
+}
+
+function showContent(title, markdown) {
+  hideEmptyState();
+  const block = document.createElement('div');
+  block.className = 'content-block';
+  block.style.animation = 'fadeIn 0.3s ease';
+
+  if (title) {
+    const t = document.createElement('div');
+    t.className = 'content-block-title';
+    t.textContent = title;
+    block.appendChild(t);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'content-block-body';
+  body.innerHTML = marked.parse(markdown || '');
+  body.querySelectorAll('pre code').forEach(el => window.hljs?.highlightElement(el));
+  block.appendChild(body);
+  contentArea.appendChild(block);
+  contentArea.scrollTop = contentArea.scrollHeight;
+
+  // Render any mermaid diagrams
+  const m = window.mermaid;
+  if (m) {
+    try {
+      if (!window._mermaidReady) {
+        m.initialize({ startOnLoad: false, theme: 'dark' });
+        window._mermaidReady = true;
+      }
+      m.run({ nodes: block.querySelectorAll('.mermaid') });
+    } catch(e) {}
+  }
+}
+
+clearBtn.addEventListener('click', () => {
+  contentArea.innerHTML = '';
+  contentArea.appendChild(emptyState);
+  emptyState.style.display = '';
+  currentBubble = null;
+  currentBodyEl = null;
+  currentText = '';
+});
+
+// ─── Load avatar ──────────────────────────────────────────────────────────────
+async function loadAvatar() {
+  try {
+    loadingText.textContent = 'LOADING AVATAR...';
+    head = new TalkingHead(avatarContainer, {
+      cameraView: 'upper',
+      cameraDistance: 0,
+      cameraY: 0.1,
+      avatarMood: 'happy',
+      pcmSampleRate: 24000,
+      lipsyncLang: 'en',
+    });
+    await head.showAvatar(
+      {
+        url: 'https://models.readyplayer.me/69b295c96e4b038c0e7f6a40.glb?morphTargets=ARKit,Oculus+Visemes&textureAtlas=1024',
+        avatarMood: 'happy',
+      },
+      (event) => {
+        if (event.lengthComputable) {
+          const pct = Math.round((event.loaded / event.total) * 100);
+          loadingText.textContent = `LOADING MODEL... ${pct}%`;
+        }
+      }
+    );
+    loadingOverlay.classList.add('hidden');
+    setStatus('connecting', 'AVATAR READY · CLICK START');
+    // Start mouth animation loop after avatar loads
+    animateMouth();
+  } catch(err) {
+    console.error('[TalkingHead] Load failed:', err);
+    loadingText.textContent = 'FAILED TO LOAD AVATAR';
+    setStatus('error', 'AVATAR LOAD FAILED');
+  }
+}
+
+// ─── Mic Engine ───────────────────────────────────────────────────────────────
+const MIC_WORKLET_CODE = `
+class PCMResamplerProcessor extends AudioWorkletProcessor {
+  constructor(options) {
+    super();
+    this._targetRate = (options.processorOptions && options.processorOptions.targetRate) || 16000;
+    this._phase = 0;
+    this._inputRate = 0;
+  }
+  process(inputs) {
+    const input = inputs[0];
+    if (!input || !input[0] || input[0].length === 0) return true;
+    const samples = input[0];
+    if (!this._inputRate) this._inputRate = sampleRate;
+    const ratio  = this._inputRate / this._targetRate;
+    const outLen = Math.floor(samples.length / ratio);
+    const out    = new Int16Array(outLen);
+    for (let i = 0; i < outLen; i++) {
+      const pos = this._phase;
+      const pi  = Math.floor(pos);
+      const frac = pos - pi;
+      const a = samples[Math.min(pi,     samples.length - 1)];
+      const b = samples[Math.min(pi + 1, samples.length - 1)];
+      out[i] = Math.max(-32768, Math.min(32767, Math.round((a + (b - a) * frac) * 32767)));
+      this._phase += ratio;
+    }
+    this._phase -= samples.length;
+    if (this._phase < 0) this._phase = 0;
+    this.port.postMessage(out.buffer, [out.buffer]);
+    return true;
+  }
+}
+registerProcessor('pcm-resampler', PCMResamplerProcessor);
+`;
+let _workletBlobURL = null;
+function getWorkletBlobURL() {
+  if (!_workletBlobURL) {
+    const blob = new Blob([MIC_WORKLET_CODE], { type: 'application/javascript' });
+    _workletBlobURL = URL.createObjectURL(blob);
+  }
+  return _workletBlobURL;
+}
+
+async function startMic() {
+  if (micActive) return;
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({
+      audio: { channelCount: 1, sampleRate: 16000, echoCancellation: true, noiseSuppression: true }
+    });
+    micCtx = new AudioContext({ sampleRate: 48000 });
+    await micCtx.audioWorklet.addModule(getWorkletBlobURL());
+    micSourceNode  = micCtx.createMediaStreamSource(micStream);
+    micWorkletNode = new AudioWorkletNode(micCtx, 'pcm-resampler', {
+      processorOptions: { targetRate: 16000 },
+      channelCount: 1, numberOfInputs: 1, numberOfOutputs: 0,
+    });
+    micWorkletNode.port.onmessage = (e) => {
+      if (ws && ws.readyState === WebSocket.OPEN) ws.send(e.data);
+    };
+    micSourceNode.connect(micWorkletNode);
+    micActive = true;
+    updateMicBtn();
+  } catch (err) {
+    console.error('[Mic] Failed:', err);
+    setStatus('error', 'MIC ACCESS DENIED');
+  }
+}
+
+function stopMic() {
+  if (!micActive) return;
+  try { micWorkletNode?.disconnect(); } catch(e) {}
+  try { micSourceNode?.disconnect(); } catch(e) {}
+  try { micCtx?.close(); } catch(e) {}
+  micStream?.getTracks().forEach(t => t.stop());
+  micStream = null; micSourceNode = null; micWorkletNode = null; micCtx = null;
+  micActive = false;
+  updateMicBtn();
+}
+
+function updateMicBtn() {
+  if (micActive) {
+    micBtn.classList.add('active');
+    micBtn.innerHTML = `<div class="mic-dot"></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Mic On`;
+  } else {
+    micBtn.classList.remove('active');
+    micBtn.innerHTML = `<div class="mic-dot"></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Mic Off`;
+  }
+}
+micBtn.addEventListener('click', () => { if (micActive) stopMic(); else startMic(); });
+
+// ─── WebSocket ────────────────────────────────────────────────────────────────
+function connectWS() {
+  setStatus('connecting', 'CONNECTING...');
+  ws = new WebSocket('ws://localhost:8765');
+
+  ws.onopen = () => {
+    console.log('[WS] Connected');
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  };
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+
+    if (msg.type === 'status' && msg.value === 'connected') {
+      setStatus('connected', 'CONNECTED · CLICK MIC TO TALK');
+      micBtn.classList.remove('disabled');
+    }
+
+    else if (msg.type === 'audio') {
+      const binary = atob(msg.data);
+      const bytes  = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const int16 = new Int16Array(bytes.buffer);
+      pcmChunks.push(int16);
+      playPCMChunk(int16);
+      if (!isStreaming) {
+        isStreaming = true;
+        setStatus('speaking', 'SPEAKING');
+        avatarCard.classList.add('speaking');
+        if (!currentBubble) startTranscriptBubble();
+      }
+    }
+
+    else if (msg.type === 'transcript') {
+      if (msg.value) {
+        pendingText += msg.value;
+        if (!currentBubble) startTranscriptBubble();
+        appendTranscript(msg.value);
+      }
+    }
+
+    else if (msg.type === 'show_content') {
+      showContent(msg.title, msg.content);
+    }
+
+    else if (msg.type === 'interrupted') {
+      console.log('[WS] interrupted received — cancelling playback');
+      interruptPlayback();
+    }
+
+    else if (msg.type === 'turn_complete') {
+      finalizeTranscript();
+
+      // ── Viseme-only lipsync scheduler ────────────────────────────────────
+      // Guard: if an interrupt already cleared pcmChunks, skip lipsync entirely
+      const totalSamples    = pcmChunks.reduce((s, c) => s + c.length, 0);
+      const audioDurationMs = (totalSamples / 24000) * 1000;
+
+      if (head && pendingText.trim() && audioDurationMs > 0) {
+        try {
+          const cleanText = pendingText.trim()
+            .replace(/```[\s\S]*?```/g, '')
+            .replace(/`[^`]*`/g, '')
+            .replace(/\$\$[\s\S]*?\$\$/g, '')
+            .replace(/\$[^$]*\$/g, '')
+            .replace(/[#*_~>\-\[\]()]/g, ' ')
+            .replace(/\d+/g, '')
+            .replace(/[^a-zA-Z\s']/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+          const lipsyncEn = head.lipsync;
+          if (lipsyncEn && typeof lipsyncEn.wordsToVisemes === 'function' && cleanText) {
+            const result = lipsyncEn.wordsToVisemes(cleanText);
+            const vis = result.visemes, rtms = result.times, rdur = result.durations;
+
+            if (vis && vis.length > 0) {
+              const relEnd = rtms[rtms.length - 1] + rdur[rdur.length - 1];
+              const scale  = relEnd > 0 ? audioDurationMs / relEnd : 1;
+
+              speakAudioActive = true;
+              vis.forEach((visemeName, i) => {
+                const onAt  = Math.round(rtms[i] * scale);
+                const offAt = Math.round((rtms[i] + rdur[i]) * scale);
+                setTimeout(() => {
+                  if (!speakAudioActive) return;
+                  try {
+                    const n = head?.mtAvatar?.[visemeName];
+                    if (n) { n.realtime = 0.6; n.needsUpdate = true; }
+                  } catch(e) {}
+                }, onAt);
+                setTimeout(() => {
+                  try {
+                    const n = head?.mtAvatar?.[visemeName];
+                    if (n) { n.realtime = 0; n.needsUpdate = true; }
+                  } catch(e) {}
+                }, offAt);
+              });
+
+              console.log(`[LipSync] scheduled ${vis.length} visemes over ${audioDurationMs.toFixed(0)}ms`);
+              setTimeout(() => { speakAudioActive = false; }, audioDurationMs + 400);
+            }
+          }
+        } catch(e) {
+          console.warn('[LipSync] viseme scheduling failed:', e.message);
+        }
+      }
+
+      pcmChunks   = [];
+      pendingText = '';
+
+      const remaining = audioCtx
+        ? Math.max(0, (playbackScheduledUntil - audioCtx.currentTime) * 1000)
+        : 0;
+      setTimeout(() => {
+        isStreaming = false;
+        setStatus('connected', micActive ? 'CONNECTED · MIC ACTIVE' : 'CONNECTED · CLICK MIC TO TALK');
+        avatarCard.classList.remove('speaking');
+      }, remaining + 300);
+    }
+
+    else if (msg.type === 'text') {
+      // model_turn.parts — sparse with native audio model, use for lipsync only
+      if (msg.value) pendingText += msg.value;
+    }
+  };
+
+  ws.onclose = () => {
+    setStatus('error', 'DISCONNECTED · RETRYING...');
+    avatarCard.classList.remove('speaking');
+    isStreaming = false;
+    finalizeTranscript();
+    stopMic();
+    micBtn.classList.add('disabled');
+    setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = () => setStatus('error', 'CONNECTION ERROR');
+}
+
+// ─── Start button ─────────────────────────────────────────────────────────────
+startBtn.addEventListener('click', () => {
+  startBtn.classList.add('hidden');
+  initAudio();
+  audioCtx.resume();
+  try { head.resumeAudioContext(); } catch(e) {}
+  connectWS();
+});
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+loadAvatar();
+</script>
+
+<script>
+function copyCode(btn) {
+  const code = btn.closest('pre').querySelector('code');
+  navigator.clipboard.writeText(code.innerText).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+</script>
+</body>
+</html>

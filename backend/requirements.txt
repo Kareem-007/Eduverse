@@ -1,0 +1,32 @@
+# --- Core AI & API ---
+google-genai==1.66.0
+google-generativeai==0.8.6
+google-api-python-client==2.192.0
+python-dotenv==1.2.2
+
+# --- Vision & Hardware ---
+opencv-python==4.13.0.92
+PyAudio==0.2.14
+pillow==12.1.1
+mss==10.1.0
+
+# --- Web & Server ---
+fastapi==0.135.1
+uvicorn==0.41.0
+websockets==16.0
+httpx==0.28.1
+python-multipart==0.0.22
+
+# --- Data & Utilities ---
+pydantic==2.12.5
+numpy==2.2.6
+PyYAML==6.0.3
+tqdm==4.67.3
+certifi==2026.2.25
+
+# --- ROS2 Integration (If needed for your Tutoring Bot) ---
+# Note: These usually come from your system (apt install ros-humble-...) 
+# but I kept the pip-compatible ones here.
+rclpy==3.3.16
+sensor-msgs-py==4.8.0
+geometry-msgs==4.8.0
