@@ -36,12 +36,12 @@ Browser (index.html)
 
 ## Features
 
-- 🎙️ **Real-time voice conversation** — talk naturally, no typing required
-- ⚡ **Bidirectional interruption** — interrupt the tutor mid-sentence naturally
-- 👄 **Lip-synced 3D avatar** — viseme-based lipsync driven by streamed audio
-- 📋 **Live content panel** — code blocks, math (KaTeX), diagrams (Mermaid.js) rendered in real-time via Gemini tool calls
-- 🔊 **Gapless audio playback** — scheduled AudioBufferSourceNodes for smooth streaming
-- 📸 **Camera/screen mode** — optionally stream webcam or screen to Gemini
+- **Real-time voice conversation** — talk naturally, no typing required
+- **Bidirectional interruption** — interrupt the tutor mid-sentence naturally
+- **Lip-synced 3D avatar** — viseme-based lipsync driven by streamed audio
+- **Live content panel** — code blocks, math (KaTeX), diagrams (Mermaid.js) rendered in real-time via Gemini tool calls
+- **Gapless audio playback** — scheduled AudioBufferSourceNodes for smooth streaming
+- **Camera/screen mode** — optionally stream webcam or screen to Gemini
 
 ---
 
