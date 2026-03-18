@@ -6,12 +6,6 @@ Built for the **Gemini Live Agent Challenge** — Live Agents category.
 
 ---
 
-## Demo Video
-
-[Watch the demo on YouTube](#) <!-- https://youtu.be/CGO1StgakZw -->
-
----
-
 ## Architecture
 
 ```
