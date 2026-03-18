@@ -1,6 +1,6 @@
 # Eduverse — AI Tutor with Real-Time Voice & Avatar
 
-> A real-time AI tutoring agent powered by Gemini Live API, featuring a lip-synced 3D avatar, bidirectional voice interruption, and a live content panel that renders code, math, and diagrams on the fly.
+> A real-time AI tutoring agent powered by Gemini Live API, featuring a lip-synced 3D avatar, bidirectional voice interruption, and a live content panel that renders code, math on the fly.
 
 Built for the **Gemini Live Agent Challenge** — Live Agents category.
 
