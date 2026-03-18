@@ -8,7 +8,7 @@ Built for the **Gemini Live Agent Challenge** — Live Agents category.
 
 ## Demo Video
 
-[Watch the demo on YouTube](#) <!-- Add your YouTube link here -->
+[Watch the demo on YouTube](#) <!-- https://youtu.be/CGO1StgakZw -->
 
 ---
 
@@ -114,6 +114,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 # No camera (recommended for testing)
 python live_service.py --mode none
 
+under development and fixations
 # With webcam
 python live_service.py --mode camera
 
@@ -161,13 +162,12 @@ To fully test all features:
 | Voice conversation | Click Mic On and ask a question |
 | Interruption | Start talking while the avatar is speaking |
 | Code rendering | Ask "show me a Python function for fibonacci" |
-| Math rendering | Ask "explain the quadratic formula" |
-| Diagram rendering | Ask "show me a diagram of how TCP works" |
+| Math rendering | Ask "explain the euler identity" |
 | Lipsync | Watch the avatar's mouth sync to the audio |
 
 ---
 
-## Cloud Deployment (Google Cloud Run)
+## Cloud Deployment (Google Cloud Run)  (Under development)
 
 The backend is configured for Google Cloud Run deployment.
 
